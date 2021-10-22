@@ -1,6 +1,6 @@
 # LiquiNFT on Zilliqa - Fractionalised NFT ownership
 
-LiquiNFT contracts allow users to lock up their NFT in the LiquiNFT-Factory contract, which then creates a new, fungible token contract representing fractional ownership of the NFT. The number of fractional shares created is an input variable in the relevant transition and can be defined by the user.
+LiquiNFT contracts allow users to lock up their NFT in the LiquiNFT contract, which then creates a new fungible token representing fractional ownership of the NFT. The number of fractional shares created is an input variable in the relevant transition and can be defined by the user.
 
 To unlock (redeem) the NFT collateral, all fungible token shares must first be burnt - by calling the redeem transition in the relevant smart contracts.
 
