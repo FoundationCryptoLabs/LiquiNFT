@@ -53,7 +53,7 @@ let get_val =
 (*             The contract definition             *)
 (***************************************************)
 
-contract FungibleToken
+contract LiquiFT
 (
   contract_owner: ByStr20,
   name : String,
@@ -114,15 +114,12 @@ procedure AuthorizedMint(recipient: ByStr20, amount: Uint128)
   event e
 end
 
-procedure AuthorizedDeposit(nftcontract: ByStr20, tokenid: Uint128)
-    msg1 = { _tag : "SetApprovalForAll"; _recipient : contractAddress; _amount : Uint128 1; _to : ByStr20 _this_address; };
-    msg2 = { _tag : "Transfer"; _recipient : contractAddress; _amount : Uint128 1; _to : ByStr20 _this_address; token_id :Uint128 token_id};
-    msgs =
-      let nil = Nil {Message} in
-      let m1 = Cons {Message} msg1 nil in
-      Cons msg2 m1
-      ;
+procedure AuthorizedNFTdeposit(nftaddress: ByStr20, tokenid: Uint128)
+    msg1 = { _tag : "SetApprovalForAll"; _recipient : nftaddress; _amount : Uint128 0; _to : _this_address};
+    msg2 = { _tag : "Transfer"; _recipient : nftaddress; _amount : Uint128 1; _to : _this_address; token_id : tokenid};
+    msgs = two_msgs msg1 msg2;
     send msgs
+  end
 
 procedure AuthorizedBurnIfSufficientBalance(from: ByStr20, amount: Uint128)
   o_get_bal <- balances[from];
@@ -190,9 +187,15 @@ end
 
 transition Deposit_and_mint(amount: Uint128, tokenAddress: ByStr20, tokenId: Uint128)
   recipient = _sender;
-  AuthorizedDeposit tokenAddress tokenId;
+  AuthorizedNFTdeposit tokenAddress tokenId;
   AuthorizedMint recipient amount;
-
+  msg_to_recipient = {_tag : "RecipientAcceptMint"; _recipient : recipient; _amount : zero;
+                      minter : _sender; recipient : recipient; amount : amount};
+  msg_to_sender = {_tag : "MintSuccessCallBack"; _recipient : _sender; _amount : zero;
+                      minter : _sender; recipient : recipient; amount : amount};
+  msgs = two_msgs msg_to_recipient msg_to_sender;
+  send msgs
+end
 
 (* @dev: Burn existing tokens. Only contract_owner can burn.                      *)
 (* @param burn_account: Address of the token_owner whose balance is to decrease.  *)
