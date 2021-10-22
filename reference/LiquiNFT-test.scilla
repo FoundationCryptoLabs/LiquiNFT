@@ -4,7 +4,7 @@ scilla_version 0
 (*               Associated library                *)
 (***************************************************)
 import BoolUtils PairUtils ListUtils
-library LiquiNFT-Test
+library LiquiNFTTest
 
 (* User-defined ADTs *)
 type Dummy =
@@ -80,7 +80,7 @@ let make_error =
 (*             The contract definition             *)
 (***************************************************)
 
-contract NonfungibleToken
+contract LiquiNFTTest
 (
   contract_owner: ByStr20,
   name : String,

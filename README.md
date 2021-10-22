@@ -7,7 +7,7 @@ To unlock (redeem) the NFT collateral, all fungible token shares must first be b
 We've successfully deployed a template LiquiShares Contract on the Zilliqa developer testnet -
 https://viewblock.io/zilliqa/address/zil1frn6xrh0s86f4ca7mrzpedd0243msafgs0jfje?network=testnet
 
-See LiquiNFT-FungibleToken.scilla and & LiquiNFT-test.scilla for our codebase, under the Reference Folder.
+See LiquiShares.scilla and & LiquiNFT-test.scilla for our codebase, under the Reference Folder.
 
 
 # How does it work?
@@ -25,7 +25,7 @@ More documentation coming soon.
 
 # Relevant Transitions and Procedures
 
-LiquiNFT-FungibleToken.scilla caputres the business logic of fractionalising the NFT.
+LiquiShares.scilla caputres the business logic of fractionalising the NFT.
 
 1. The *Deposit_and_mint* transition handles conversion of ZRC1 to ZRC2 fractional shares. It first calls the *AuthorizedDepositNFT* procedure to approve & transfer the relevant NFT from the user to the contract. This requires the NFT contract address and the TokenID as params.
 

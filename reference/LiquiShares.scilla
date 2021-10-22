@@ -4,7 +4,7 @@ scilla_version 0
 (*               Associated library                *)
 (***************************************************)
 import IntUtils
-library FungibleToken
+library LiquiShares
 
 let one_msg =
   fun (msg : Message) =>
@@ -53,7 +53,7 @@ let get_val =
 (*             The contract definition             *)
 (***************************************************)
 
-contract LiquiFT
+contract LiquiShares
 (
   contract_owner: ByStr20,
   name : String,
@@ -72,6 +72,10 @@ field balances: Map ByStr20 Uint128
 
 field allowances: Map ByStr20 (Map ByStr20 Uint128)
   = Emp ByStr20 (Map ByStr20 Uint128)
+
+(* keep track of tokens minted for a given NFT_ID - uint ID -> uint supply mapping *)
+field tokens_minted: Map Uint128 Uint128
+ = Emp Uint128 Uint128
 
 (**************************************)
 (*             Procedures             *)
@@ -106,6 +110,8 @@ procedure AcceptNFT(from : ByStr20, token_id : Uint256)
   accept
  end
 
+(* change from AuthorizedMint to mint - allowing anyone to tokenize NFT by calling the transition *)
+
 procedure AuthorizedMint(recipient: ByStr20, amount: Uint128)
   o_recipient_bal <- balances[recipient];
   bal = get_val o_recipient_bal;
@@ -118,10 +124,20 @@ procedure AuthorizedMint(recipient: ByStr20, amount: Uint128)
   event e
 end
 
-procedure AuthorizedNFTdeposit(nftaddress: ByStr20, tokenid: Uint128)
+(* transfer NFT from _sender to this contract) *)
+procedure LiqNFTdeposit(nftaddress: ByStr20, tokenid: Uint128)
     msg1 = { _tag : "SetApprovalForAll"; _recipient : nftaddress; _amount : Uint128 0; _to : _this_address};
     msg2 = { _tag : "Transfer"; _recipient : nftaddress; _amount : Uint128 1; _to : _this_address; token_id : tokenid};
     msgs = two_msgs msg1 msg2;
+    send msgs
+  end
+
+
+(* transfer NFT from this contract to _sender) *)
+procedure LiqNFTredeem(nftaddress: ByStr20, tokenid: Uint128)
+    reciever = _sender;
+    msg1 = { _tag : "Transfer"; _recipient : nftaddress; _amount : Uint128 1; _to : _this_address; token_id : tokenid};
+    msgs = one_msg msg1;
     send msgs
   end
 
@@ -189,10 +205,11 @@ end
 end
 *)
 
-transition Deposit_and_mint(amount: Uint128, tokenAddress: ByStr20, tokenId: Uint128)
+transition Deposit_and_mint(amount: Uint128, tokenAddress: ByStr20, tokenid: Uint128)
   recipient = _sender;
-  AuthorizedNFTdeposit tokenAddress tokenId;
+  LiqNFTdeposit tokenAddress tokenid;
   AuthorizedMint recipient amount;
+  tokens_minted[tokenid]:= amount;
   msg_to_recipient = {_tag : "RecipientAcceptMint"; _recipient : recipient; _amount : zero;
                       minter : _sender; recipient : recipient; amount : amount};
   msg_to_sender = {_tag : "MintSuccessCallBack"; _recipient : _sender; _amount : zero;
@@ -201,9 +218,20 @@ transition Deposit_and_mint(amount: Uint128, tokenAddress: ByStr20, tokenId: Uin
   send msgs
 end
 
+transition Burn_and_redeem(tokenAddress: ByStr20, tokenid: Uint128)
+    amount <- tokens_minted[tokenid];
+    recipient = _sender;
+    AuthorizedBurnIfSufficientBalance recipient amount;
+    LiqNFTredeem tokenAddress tokenid;
+    msg_to_sender = {_tag : "BurnSuccessCallBack"; _recipient : _sender; _amount : zero;
+                    burner : _sender; burn_account : burn_account; amount : amount};
+    msgs = one_msg msg_to_sender;
+  send msgs
+  end
 (* @dev: Burn existing tokens. Only contract_owner can burn.                      *)
 (* @param burn_account: Address of the token_owner whose balance is to decrease.  *)
 (* @param amount:       Number of tokens to be burned.                            *)
+
 transition Burn(burn_account: ByStr20, amount: Uint128)
   IsOwner _sender;
   AuthorizedBurnIfSufficientBalance burn_account amount;
