@@ -114,7 +114,7 @@ procedure AuthorizedMint(recipient: ByStr20, amount: Uint128)
   event e
 end
 
-procedure AuthorizedDeposit(NFTcontract: ByStr20, tokenid: Uint128)
+procedure AuthorizedDeposit(nftcontract: ByStr20, tokenid: Uint128)
     msg1 = { _tag : "SetApprovalForAll"; _recipient : contractAddress; _amount : Uint128 1; _to : ByStr20 _this_address; };
     msg2 = { _tag : "Transfer"; _recipient : contractAddress; _amount : Uint128 1; _to : ByStr20 _this_address; token_id :Uint128 token_id};
     msgs =
