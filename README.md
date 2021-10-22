@@ -4,9 +4,22 @@ LiquiNFT contracts allow users to lock up their NFT in the LiquiNFT-Factory cont
 
 To unlock (redeem) the NFT collateral, all fungible token shares must first be burnt - by calling the redeem transition in the relevant smart contracts.
 
+See LiquiNFT-FungibleToken.scilla and LiquiNFT-Fungible-Factory.scilla for our codebase, under the Reference Folder. Our contracts have been deployed on the Zilliqa developer testnet.
+
+# How does it work?
+
+Given that a fungible token is flexible such that it can be exchanged for another of its kind without losing value, a smart contract can be deployed to generate ZRC2 tokens linked to an indivisible ZRC1 NFT. This way, anyone who holds any of the ZRC2 tokens generated can own a percentage of the rare and valuable NFT.
+This is how fractional ownership of an NFT can be created, and the smart contract can secure the data that differentiates the fractional NFT from other NFTs. This idea can also be applied on any blockchain network that supports smart contracts and NFTs such that the NFT is locked in a smart contract on the blockchain and ownership of the NFT is represented by multiple fungible tokens whose supply is governed by the smart contract.”
+So, in simple terms, the non-fungible ZRC1 tokens are broken up into fungible ZRC2 tokens, which allow any buyers to own a portion. This is both a benefit to buyers and curators.
+
+# Why Fractional Ownership?
+
+So this allows lots of people to have part ownership thus being part of the club and making some sweet profits from a future sale, all without having to spend millions. A buyer chooses how much they want to put up and in return they are given a percentage of shares which represents ownership.
+This is the big difference between the digital and physical world. You could never break up the Mona Lisa and divide ownership without having an incomplete piece of work. However, we can do this with a CryptoPunk and many more.
+
 More documentation coming soon.
 
-
+# ZRC Codebase
 
 The Zilliqa Reference Contracts (ZRCs) are the contract standards for the Zilliqa platform.
 
