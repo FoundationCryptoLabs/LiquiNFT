@@ -6,6 +6,7 @@ To unlock (redeem) the NFT collateral, all fungible token shares must first be b
 
 See LiquiNFT-FungibleToken.scilla and LiquiNFT-Fungible-Factory.scilla for our codebase, under the Reference Folder. Our contracts have been deployed on the Zilliqa developer testnet.
 
+
 # How does it work?
 
 Given that a fungible token is flexible such that it can be exchanged for another of its kind without losing value, a smart contract can be deployed to generate ZRC2 tokens linked to an indivisible ZRC1 NFT. This way, anyone who holds any of the ZRC2 tokens generated can own a percentage of the rare and valuable NFT.
@@ -18,6 +19,16 @@ So this allows lots of people to have part ownership thus being part of the club
 This is the big difference between the digital and physical world. You could never break up the Mona Lisa and divide ownership without having an incomplete piece of work. However, we can do this with a CryptoPunk and many more.
 
 More documentation coming soon.
+
+# Relevant Transitions and Procedures
+
+LiquiNFT-FungibleToken.scilla caputres the business logic of fractionalising the NFT.
+
+1. The *Deposit_and_mint* transition handles conversion of ZRC1 to ZRC2 fractional shares. It first calls the *AuthorizedDepositNFT* procedure to approve & transfer the relevant NFT from the user to the contract. This requires the NFT contract address and the TokenID as params.
+
+The transition then calls the *AuthorizedMint* procedure to mint the requested amount of ZRC2 Fungible Tokens, representing fractional ownership in the NFT.
+
+2. The *Burn_and_redeem* transition allows the collateral NFT to be redeemed, if and only if one user has ALL the fungible fractional tokens (i.e. complete ownership of the collateral NFT). Otherwise, the transaction reverts.
 
 # ZRC Codebase
 
