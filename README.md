@@ -4,7 +4,10 @@ LiquiNFT contracts allow users to lock up their NFT in the LiquiNFT contract, wh
 
 To unlock (redeem) the NFT collateral, all fungible token shares must first be burnt - by calling the redeem transition in the relevant smart contracts.
 
-See LiquiNFT-FungibleToken.scilla and LiquiNFT-Fungible-Factory.scilla & LiquiNFT-test.scilla for our codebase, under the Reference Folder. Our contracts have been deployed on the Zilliqa developer testnet.
+We've successfully deployed a template LiquiShares Contract on the Zilliqa developer testnet -
+https://viewblock.io/zilliqa/address/zil1frn6xrh0s86f4ca7mrzpedd0243msafgs0jfje?network=testnet
+
+See LiquiNFT-FungibleToken.scilla and & LiquiNFT-test.scilla for our codebase, under the Reference Folder.
 
 
 # How does it work?
@@ -29,6 +32,11 @@ LiquiNFT-FungibleToken.scilla caputres the business logic of fractionalising the
 The transition then calls the *AuthorizedMint* procedure to mint the requested amount of ZRC2 Fungible Tokens, representing fractional ownership in the NFT.
 
 2. The *Burn_and_redeem* transition allows the collateral NFT to be redeemed, if and only if one user has ALL the fungible fractional tokens (i.e. complete ownership of the collateral NFT). Otherwise, the transaction reverts.
+
+
+# Additional informattion
+Name: neutrinoEater
+Email: dktrpo@gmail.com
 
 # ZRC Codebase
 

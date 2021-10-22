@@ -102,6 +102,10 @@ procedure IsNotSender(address: ByStr20)
   end
 end
 
+procedure AcceptNFT(from : ByStr20, token_id : Uint256)
+  accept
+ end
+
 procedure AuthorizedMint(recipient: ByStr20, amount: Uint128)
   o_recipient_bal <- balances[recipient];
   bal = get_val o_recipient_bal;
