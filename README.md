@@ -4,7 +4,7 @@ LiquiNFT contracts allow users to lock up their NFT in the LiquiNFT contract, wh
 
 To unlock (redeem) the NFT collateral, all fungible token shares must first be burnt - by calling the redeem transition in the relevant smart contracts.
 
-See LiquiNFT-FungibleToken.scilla and LiquiNFT-Fungible-Factory.scilla for our codebase, under the Reference Folder. Our contracts have been deployed on the Zilliqa developer testnet.
+See LiquiNFT-FungibleToken.scilla and LiquiNFT-Fungible-Factory.scilla & LiquiNFT-test.scilla for our codebase, under the Reference Folder. Our contracts have been deployed on the Zilliqa developer testnet.
 
 
 # How does it work?
