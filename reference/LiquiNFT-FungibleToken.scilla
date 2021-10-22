@@ -6,8 +6,8 @@ scilla_version 0
 import IntUtils
 library FungibleToken
 
-let one_msg = 
-  fun (msg : Message) => 
+let one_msg =
+  fun (msg : Message) =>
   let nil_msg = Nil {Message} in
   Cons {Message} msg nil_msg
 
@@ -26,7 +26,7 @@ type Error =
 
 let make_error =
   fun (result : Error) =>
-    let result_code = 
+    let result_code =
       match result with
       | CodeIsSender              => Int32 -1
       | CodeInsufficientFunds     => Int32 -2
@@ -35,7 +35,7 @@ let make_error =
       end
     in
     { _exception : "Error"; code : result_code }
-  
+
 let zero = Uint128 0
 
 (* Dummy user-defined ADT *)
@@ -66,11 +66,11 @@ contract FungibleToken
 
 field total_supply : Uint128 = init_supply
 
-field balances: Map ByStr20 Uint128 
+field balances: Map ByStr20 Uint128
   = let emp_map = Emp ByStr20 Uint128 in
     builtin put emp_map contract_owner init_supply
 
-field allowances: Map ByStr20 (Map ByStr20 Uint128) 
+field allowances: Map ByStr20 (Map ByStr20 Uint128)
   = Emp ByStr20 (Map ByStr20 Uint128)
 
 (**************************************)
@@ -102,7 +102,7 @@ procedure IsNotSender(address: ByStr20)
   end
 end
 
-procedure AuthorizedMint(recipient: ByStr20, amount: Uint128) 
+procedure AuthorizedMint(recipient: ByStr20, amount: Uint128)
   o_recipient_bal <- balances[recipient];
   bal = get_val o_recipient_bal;
   new_balance = builtin add amount bal;
@@ -113,6 +113,16 @@ procedure AuthorizedMint(recipient: ByStr20, amount: Uint128)
   e = {_eventname: "Minted"; minter: _sender; recipient: recipient; amount: amount};
   event e
 end
+
+procedure AuthorizedDeposit(NFTcontract: ByStr20, tokenid: Uint128)
+    msg1 = { _tag : "SetApprovalForAll"; _recipient : contractAddress; _amount : Uint128 1; _to : ByStr20 _this_address; };
+    msg2 = { _tag : "Transfer"; _recipient : contractAddress; _amount : Uint128 1; _to : ByStr20 _this_address; token_id :Uint128 token_id};
+    msgs =
+      let nil = Nil {Message} in
+      let m1 = Cons {Message} msg1 nil in
+      Cons msg2 m1
+      ;
+    send msgs
 
 procedure AuthorizedBurnIfSufficientBalance(from: ByStr20, amount: Uint128)
   o_get_bal <- balances[from];
@@ -127,7 +137,7 @@ procedure AuthorizedBurnIfSufficientBalance(from: ByStr20, amount: Uint128)
     new_total_supply = builtin sub current_total_supply amount;
     total_supply := new_total_supply;
     e = {_eventname: "Burnt"; burner: _sender; burn_account: from; amount: amount};
-    event e  
+    event e
   | False =>
     err = CodeInsufficientFunds;
     ThrowError err
@@ -164,17 +174,25 @@ end
 (* @dev: Mint new tokens. Only contract_owner can mint.                      *)
 (* @param recipient: Address of the recipient whose balance is to increase.  *)
 (* @param amount:    Number of tokens to be minted.                          *)
-transition Mint(recipient: ByStr20, amount: Uint128)
+
+(*transition Mint(recipient: ByStr20, amount: Uint128)
   IsOwner _sender;
   AuthorizedMint recipient amount;
-  (* Prevent sending to a contract address that does not support transfers of token *)
-  msg_to_recipient = {_tag : "RecipientAcceptMint"; _recipient : recipient; _amount : zero; 
+  Prevent sending to a contract address that does not support transfers of token
+  msg_to_recipient = {_tag : "RecipientAcceptMint"; _recipient : recipient; _amount : zero;
                       minter : _sender; recipient : recipient; amount : amount};
-  msg_to_sender = {_tag : "MintSuccessCallBack"; _recipient : _sender; _amount : zero; 
+  msg_to_sender = {_tag : "MintSuccessCallBack"; _recipient : _sender; _amount : zero;
                       minter : _sender; recipient : recipient; amount : amount};
   msgs = two_msgs msg_to_recipient msg_to_sender;
   send msgs
 end
+*)
+
+transition Deposit_and_mint(amount: Uint128, tokenAddress: ByStr20, tokenId: Uint128)
+  recipient = _sender;
+  AuthorizedDeposit tokenAddress tokenId;
+  AuthorizedMint recipient amount;
+
 
 (* @dev: Burn existing tokens. Only contract_owner can burn.                      *)
 (* @param burn_account: Address of the token_owner whose balance is to decrease.  *)
@@ -182,7 +200,7 @@ end
 transition Burn(burn_account: ByStr20, amount: Uint128)
   IsOwner _sender;
   AuthorizedBurnIfSufficientBalance burn_account amount;
-  msg_to_sender = {_tag : "BurnSuccessCallBack"; _recipient : _sender; _amount : zero; 
+  msg_to_sender = {_tag : "BurnSuccessCallBack"; _recipient : _sender; _amount : zero;
                     burner : _sender; burn_account : burn_account; amount : amount};
   msgs = one_msg msg_to_sender;
   send msgs
@@ -228,9 +246,9 @@ transition Transfer(to: ByStr20, amount: Uint128)
   e = {_eventname : "TransferSuccess"; sender : _sender; recipient : to; amount : amount};
   event e;
   (* Prevent sending to a contract address that does not support transfers of token *)
-  msg_to_recipient = {_tag : "RecipientAcceptTransfer"; _recipient : to; _amount : zero; 
+  msg_to_recipient = {_tag : "RecipientAcceptTransfer"; _recipient : to; _amount : zero;
                       sender : _sender; recipient : to; amount : amount};
-  msg_to_sender = {_tag : "TransferSuccessCallBack"; _recipient : _sender; _amount : zero; 
+  msg_to_sender = {_tag : "TransferSuccessCallBack"; _recipient : _sender; _amount : zero;
                   sender : _sender; recipient : to; amount : amount};
   msgs = two_msgs msg_to_recipient msg_to_sender;
   send msgs
@@ -253,9 +271,9 @@ transition TransferFrom(from: ByStr20, to: ByStr20, amount: Uint128)
     new_allowed = builtin sub allowed amount;
     allowances[from][_sender] := new_allowed;
     (* Prevent sending to a contract address that does not support transfers of token *)
-    msg_to_recipient = {_tag: "RecipientAcceptTransferFrom"; _recipient : to; _amount: zero; 
+    msg_to_recipient = {_tag: "RecipientAcceptTransferFrom"; _recipient : to; _amount: zero;
                         initiator: _sender; sender : from; recipient: to; amount: amount};
-    msg_to_sender = {_tag: "TransferFromSuccessCallBack"; _recipient: _sender; _amount: zero; 
+    msg_to_sender = {_tag: "TransferFromSuccessCallBack"; _recipient: _sender; _amount: zero;
                     initiator: _sender; sender: from; recipient: to; amount: amount};
     msgs = two_msgs msg_to_recipient msg_to_sender;
     send msgs

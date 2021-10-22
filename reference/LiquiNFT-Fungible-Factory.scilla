@@ -176,10 +176,10 @@ transition Mint(recipient: ByStr20, amount: Uint128)
   send msgs
 end
 
-transition Deposit_and_mint(amount: Uint128)
+transition Deposit_and_mint(amount: Uint128, tokenAddress: ByStr20, tokenId: Uint128)
   recipient = _sender;
+  AuthorizedDeposit tokenAddress tokenId;
   newToken = new LiquiNFT-FungibleToken;
-  newToken.AuthorizedMint recipient amount;
 
 (* @dev: Burn existing tokens. Only contract_owner can burn.                      *)
 (* @param burn_account: Address of the token_owner whose balance is to decrease.  *)
