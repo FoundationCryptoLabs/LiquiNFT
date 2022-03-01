@@ -21,20 +21,36 @@ So, in simple terms, the non-fungible ZRC1 tokens are broken up into fungible ZR
 So this allows lots of people to have part ownership thus being part of the club and making some sweet profits from a future sale, all without having to spend millions. A buyer chooses how much they want to put up and in return they are given a percentage of shares which represents ownership.
 This is the big difference between the digital and physical world. You could never break up the Mona Lisa and divide ownership without having an incomplete piece of work. However, we can do this with a CryptoPunk and many more.
 
-More documentation coming soon.
+
+# Steps of usage
+Let's assume Alice has an NFT called "Earth", and she wants to divide it into 1 billion fractional tokens, called "molecules". The process would look like this:
+
+1. First, she creates a new standard ZRC2 token with a supply of 1 billion called "molecules", and mints the whole supply to herself.
+2. Next she calls the Deposit_and_mint function, specifying the NFT token address ("Earth") and token ID, as well as the contract address for the ZRC2 token ("molecules") created in step 1.
+3. The contract links the locked NFT "earth" to the FT. It is now redeemable by anybody who has all of the supply of "molecules". Thus molecules are now fractional tokens representing a share in "Earth", and can be traded as such.
 
 # Relevant Transitions and Procedures
 
 LiquiShares.scilla caputres the business logic of fractionalising the NFT.
 
-1. The *Deposit_and_mint* transition handles conversion of ZRC1 to ZRC2 fractional shares. It first calls the *AuthorizedDepositNFT* procedure to approve & transfer the relevant NFT from the user to the contract. This requires the NFT contract address and the TokenID as params.
+1. The *Deposit_and_link* transition handles conversion of ZRC1 to ZRC2 fractional shares. It first calls the *AuthorizedDepositNFT* procedure to approve & transfer the relevant NFT from the user to the contract. This requires the NFT contract address and the TokenID as params.
 
 The transition then calls the *AuthorizedMint* procedure to mint the requested amount of ZRC2 Fungible Tokens, representing fractional ownership in the NFT.
 
-2. The *Burn_and_redeem* transition allows the collateral NFT to be redeemed, if and only if one user has ALL the fungible fractional tokens (i.e. complete ownership of the collateral NFT). Otherwise, the transaction reverts.
+2. The *Recieve_and_redeem* transition allows the collateral NFT to be redeemed, if and only if one user has ALL the fungible fractional tokens (i.e. complete ownership of the collateral NFT). Otherwise, the transaction reverts.
 
 
 # Additional informattion
+
+It is important to note that the NFT-liquiShares linking process is open ended. This means you can link an NFT's redeemability to any ZRC2 FT, including existing tokens of various protocols. It is up to the NFT depositor to pick a new ZRC2 token that he/she owns fully, if they wish to retain ownership of the NFT in fractionalised form - and perhaps use the shares for financing activities via collateralised loans or auctions of portions of the NFT.
+
+The requirement for redemption is simply that the user's balance of the fractional shares is exactly equal to the total supply of the fractional shares, _at the time of redemption_. Thus in case the token inflates or deflates the total supply between the inital linkage and the final redemption, it will still be possible to use the shares to redeem the NFT at any time. This makes very flexibile and innovative models of fractional NFT ownership possible.
+
+Also, one FT cannot represent fractional shares in more than one NFT. This is by design, since at redemption of one NFT all the FTs will get burned. If they represented multiple NFTs, the other NFTs would become unredeemable, as the fractional FTs are now destroyed.
+
+More documentation coming soon.
+
+
 Name: neutrinoEater
 Email: dktrpo@gmail.com
 

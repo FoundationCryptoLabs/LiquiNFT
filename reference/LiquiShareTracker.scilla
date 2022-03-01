@@ -1,0 +1,191 @@
+scilla_version 0
+
+(***************************************************)
+(*               Associated library                *)
+(***************************************************)
+import IntUtils
+library LiquiShareTracker
+
+let one_msg =
+  fun (msg : Message) =>
+  let nil_msg = Nil {Message} in
+  Cons {Message} msg nil_msg
+
+let two_msgs =
+fun (msg1 : Message) =>
+fun (msg2 : Message) =>
+  let msgs_tmp = one_msg msg2 in
+  Cons {Message} msg1 msgs_tmp
+
+(* Error events *)
+type Error =
+| CodeIsSender
+| CodeInsufficientFunds
+| CodeInsufficientAllowance
+| CodeNotOwner
+
+let make_error =
+  fun (result : Error) =>
+    let result_code =
+      match result with
+      | CodeIsSender              => Int32 -1
+      | CodeInsufficientFunds     => Int32 -2
+      | CodeInsufficientAllowance => Int32 -3
+      | CodeNotOwner              => Int32 -4
+      end
+    in
+    { _exception : "Error"; code : result_code }
+
+let zero = Uint128 0
+(* map contract to nested map of nftid => address
+assumes both zrc2 token address, and nft Id are unique
+*)
+field nftdata : Map ByStr20 (Map Int32 ByStr20)
+field nftid : Map Int32 ByStr20
+field zrc2limit : Map ByStr20 Uint32
+
+
+(* map the byte strings to the totalsupply )
+= Emp FieldType1 FieldType2
+(* Dummy user-defined ADT *)
+type Unit =
+| Unit
+
+let get_val =
+  fun (some_val: Option Uint128) =>
+  match some_val with
+  | Some val => val
+  | None => zero
+  end
+
+(***************************************************)
+(*             The contract definition             *)
+(***************************************************)
+
+contract LiquiShareTracker
+(
+  contract_owner: ByStr20,
+  name : String,
+  symbol: String,
+  decimals: Uint32,
+  init_supply : Uint128
+)
+
+(* Mutable fields *)
+
+field NFTsharesaddress : Map Uint128 ByStr20 = Emp Uint128 ByStr20
+field nftid_used : Map Uint128 Bool = Emp Uint128 Bool
+
+field total_supply : Uint128 = init_supply
+
+field balances: Map ByStr20 Uint128
+  = let emp_map = Emp ByStr20 Uint128 in
+    builtin put emp_map contract_owner init_supply
+
+field allowances: Map ByStr20 (Map ByStr20 Uint128)
+  = Emp ByStr20 (Map ByStr20 Uint128)
+
+(* keep track of tokens minted for a given NFT_ID - uint ID -> uint supply mapping *)
+field tokens_minted: Map Uint128 Uint128
+ = Emp Uint128 Uint128
+
+(**************************************)
+(*             Procedures             *)
+(**************************************)
+
+procedure ThrowError(err : Error)
+  e = make_error err;
+  throw e
+end
+
+procedure IsOwner(address: ByStr20)
+  is_owner = builtin eq contract_owner address;
+  match is_owner with
+  | True =>
+  | False =>
+    err = CodeNotOwner;
+    ThrowError err
+  end
+end
+
+procedure IsNotSender(address: ByStr20)
+  is_sender = builtin eq _sender address;
+  match is_sender with
+  | True =>
+    err = CodeIsSender;
+    ThrowError err
+  | False =>
+  end
+end
+
+procedure AcceptNFT(from : ByStr20, token_id : Uint256)
+  accept
+ end
+
+(* transfer NFT from _sender to this contract) *)
+procedure LiqNFTdeposit(nftaddress: ByStr20, tokenid: Uint128)
+    msg1 = { _tag : "SetApprovalForAll"; _recipient : nftaddress; _amount : Uint128 0; _to : _this_address};
+    msg2 = { _tag : "Transfer"; _recipient : nftaddress; _amount : Uint128 1; _to : _this_address; token_id : tokenid};
+    msgs = two_msgs msg1 msg2;
+    send msgs
+  end
+
+(* transfer ZRC2 shares from user to contract/ burn address, at time of redemption *)
+procedure TransferZRC2(
+  receiver : ByStr20,
+  token_amount : Uint128,
+  token_address : ByStr20
+  )
+  msg_to_token = {
+    _tag : "TransferFrom";
+    _recipient: token_address;
+    _amount: zero;
+    from: _sender;
+    to: receiver;
+    amount: token_amount
+  };
+  msgs = one_msg msg_to_token;
+  send msgs
+end
+
+(* transfer NFT from this contract to _sender) *)
+procedure LiqNFTredeem(nftaddress: ByStr20, tokenid: Uint128)
+    reciever = _sender;
+    msg1 = { _tag : "Transfer"; _recipient : nftaddress; _amount : Uint128 1; _to : _this_address; token_id : tokenid};
+    msgs = one_msg msg1;
+    send msgs
+  end
+
+
+(***************************************)
+(*             Transitions             *)
+(***************************************)
+
+
+transition Deposit_and_link(amount: Uint128, tokenAddress: ByStr20, tokenid: Uint128)
+  recipient = _sender;
+
+  LiqNFTdeposit tokenAddress tokenid;
+  AuthorizedMint recipient amount;
+  tokens_minted[tokenid]:= amount;
+  msg_to_recipient = {_tag : "RecipientAcceptMint"; _recipient : recipient; _amount : zero;
+                      minter : _sender; recipient : recipient; amount : amount};
+  msg_to_sender = {_tag : "MintSuccessCallBack"; _recipient : _sender; _amount : zero;
+                      minter : _sender; recipient : recipient; amount : amount};
+  msgs = two_msgs msg_to_recipient msg_to_sender;
+  send msgs
+end
+
+transition Burn_and_redeem(NFTtokenAddress: ByStr20, tokenid: Uint128)
+    amount <- tokens_minted[tokenid];
+    recipient = _sender;
+    (*AuthorizedBurnIfSufficientBalance recipient amount; *)
+    (*zrc2 tokaddress for fractional shares *)
+    tokaddress = NFTsharesaddress[tokenid]
+    toksupply = GetSupply tokaddress
+    fractionalZRC2 = nftdata[tokenid]
+    ByStr20 Burnadd = "0x000000000000000000000"
+    TransferZRC2 Burnadd
+    LiqNFTredeem NFTtokenAddress tokenid;
+  end
+end
