@@ -162,12 +162,12 @@ procedure LiqNFTredeem(nftaddress: ByStr20, tokenid: Uint256)
 (***************************************)
 
 (* link deposited NFT to N shares of a specified FT*)
-transition Deposit_and_link(nfttokenAddress: ByStr20, tokenid: Uint256,
-numshares: Uint128, fractionalshareaddress: ByStr20)
+transition Deposit_and_link(amount: Uint128, nfttokenAddress: ByStr20, tokenid: Uint256,
+    numshares: Uint128, fractionalshare: ByStr20)
     recipient = _sender;
     num_shares[tokenid]:=numshares;
     LiqNFTdeposit nfttokenAddress tokenid;
-    nftsharesaddress[tokenid]:= fractionalshareaddress;
+    nftsharesaddress[tokenid]:=fractionalshare
   end
 
 transition return_and_redeem(nfttokenAddress: ByStr20, tokenid: Uint256)
@@ -176,7 +176,17 @@ transition return_and_redeem(nfttokenAddress: ByStr20, tokenid: Uint256)
     (*zrc2 tokaddress for fractional shares *)
     tokaddress <- nftsharesaddress[tokenid];
     toksupply <- num_shares[tokenid];
-    (*fractionalZRC2 <- nftdata[tokenid];*)
-    TransferZRC2 _this_address toksupply tokaddress;
-    LiqNFTredeem nfttokenAddress tokenid
-  end
+    match toksupply with
+    | Some v =>
+      validtokens = v;
+      match tokaddress with
+      | Some z =>
+          TransferZRC2 _this_address v z;
+          LiqNFTredeem nfttokenAddress tokenid
+      | None =>
+      validtokens = Uint128 0
+      end
+    | None =>
+      validtokens = Uint128 0
+    end
+end
