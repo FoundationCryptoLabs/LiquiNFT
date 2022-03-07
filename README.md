@@ -26,11 +26,11 @@ This is the big difference between the digital and physical world. You could nev
 
 
 # Steps of usage
-Let's assume Alice has an NFT called "Earth", and she wants to divide it into 1 billion fractional tokens, called "molecules". The process would look like this:
+Let's assume Alice has an NFT called "Toad", and she wants to divide it into 1 billion fractional tokens, called "ToadShares". The process would look like this:
 
-1. First, she creates a new standard ZRC2 token with a supply of 1 billion called "molecules", and mints the whole supply to herself.
-2. Next she calls the Deposit_and_mint function, specifying the NFT token address ("Earth") and token ID, as well as the contract address for the ZRC2 token ("molecules") created in step 1.
-3. The contract links the locked NFT "earth" to the FT. It is now redeemable by anybody who has all of the supply of "molecules". Thus molecules are now fractional tokens representing a share in "Earth", and can be traded as such.
+1. First, she creates a new standard ZRC2 token with a supply of 1000, called "ToadShares", and mints the whole supply to herself.
+2. Next she calls the Deposit_and_mint function, specifying the NFT token address ("Toad") and token ID, as well as the contract address for the ZRC2 token ("ToadShares") created in step 1.
+3. The contract links the locked NFT "Toad" to the FT. It is now redeemable by anybody who has all of the supply (1000) of "ToadShares". Thus ToadShares are now fractional tokens representing a share in "Toad", and can be traded as such.
 
 # Relevant Transitions and Procedures
 
