@@ -121,10 +121,12 @@ procedure AcceptNFT(from : ByStr20, token_id : Uint256)
   accept
  end
 
+
+
 (* transfer NFT from _sender to this contract) *)
 procedure LiqNFTdeposit(nftaddress: ByStr20, tokenid: Uint256)
-    msg1 = { _tag : "SetApprovalForAll"; _recipient : nftaddress; _amount : Uint128 0; _to : _this_address};
-    msg2 = { _tag : "Transfer"; _recipient : nftaddress; _amount : Uint128 1; _to : _this_address; token_id : tokenid};
+    msg1 = { _tag : "SetApprove"; _amount : Uint128 0; _recipient : nftaddress; _to : _this_address; to : _this_address; token_id : tokenid};
+    msg2 = { _tag : "TransferFrom"; _amount : Uint128 0;  _recipient : nftaddress; _to : _this_address; to : _this_address; token_id : tokenid};
     msgs = two_msgs msg1 msg2;
     send msgs
   end
@@ -160,6 +162,10 @@ procedure LiqNFTredeem(nftaddress: ByStr20, tokenid: Uint256)
 (***************************************)
 (*             Transitions             *)
 (***************************************)
+
+transition RecipientAcceptTransferFrom(from : ByStr20, token_id : Uint256)
+    AcceptNFT from token_id
+end
 
 (* link deposited NFT to N shares of a specified FT*)
 transition Deposit_and_link(nfttokenAddress: ByStr20, tokenid: Uint256, numshares: Uint128, fractionalshare: ByStr20)
