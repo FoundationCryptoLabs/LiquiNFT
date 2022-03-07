@@ -6,8 +6,8 @@ scilla_version 0
 import IntUtils
 library FungibleToken
 
-let one_msg = 
-  fun (msg : Message) => 
+let one_msg =
+  fun (msg : Message) =>
   let nil_msg = Nil {Message} in
   Cons {Message} msg nil_msg
 
@@ -25,7 +25,7 @@ type Error =
 
 let make_error =
   fun (result : Error) =>
-    let result_code = 
+    let result_code =
       match result with
       | CodeIsSender              => Int32 -1
       | CodeInsufficientFunds     => Int32 -2
@@ -33,7 +33,7 @@ let make_error =
       end
     in
     { _exception : "Error"; code : result_code }
-  
+
 let zero = Uint128 0
 
 (* Dummy user-defined ADT *)
@@ -64,11 +64,11 @@ contract FungibleToken
 
 field total_supply : Uint128 = init_supply
 
-field balances: Map ByStr20 Uint128 
+field balances: Map ByStr20 Uint128
   = let emp_map = Emp ByStr20 Uint128 in
     builtin put emp_map contract_owner init_supply
 
-field allowances: Map ByStr20 (Map ByStr20 Uint128) 
+field allowances: Map ByStr20 (Map ByStr20 Uint128)
   = Emp ByStr20 (Map ByStr20 Uint128)
 
 (**************************************)
@@ -157,20 +157,34 @@ transition Transfer(to: ByStr20, amount: Uint128)
   e = {_eventname : "TransferSuccess"; sender : _sender; recipient : to; amount : amount};
   event e;
   (* Prevent sending to a contract address that does not support transfers of token *)
-  msg_to_recipient = {_tag : "RecipientAcceptTransfer"; _recipient : to; _amount : zero; 
+  msg_to_recipient = {_tag : "RecipientAcceptTransfer"; _recipient : to; _amount : zero;
                       sender : _sender; recipient : to; amount : amount};
-  msg_to_sender = {_tag : "TransferSuccessCallBack"; _recipient : _sender; _amount : zero; 
+  msg_to_sender = {_tag : "TransferSuccessCallBack"; _recipient : _sender; _amount : zero;
                   sender : _sender; recipient : to; amount : amount};
   msgs = two_msgs msg_to_recipient msg_to_sender;
   send msgs
 end
 
+
+(* Unsecured transferFrom function for testing, as Increase Allowance cannot be called from a contract in scilla *)
+transition TransferFrom(from: ByStr20, to: ByStr20, amount: Uint128)
+    AuthorizedMoveIfSufficientBalance from to amount;
+    e = {_eventname : "TransferFromSuccess"; initiator : _sender; sender : from; recipient : to; amount : amount};
+    event e;
+    msg_to_recipient = {_tag: "RecipientAcceptTransferFrom"; _recipient : to; _amount: zero;
+                        initiator: _sender; sender : from; recipient: to; amount: amount};
+    msg_to_sender = {_tag: "TransferFromSuccessCallBack"; _recipient: _sender; _amount: zero;
+                    initiator: _sender; sender: from; recipient: to; amount: amount};
+    msgs = two_msgs msg_to_recipient msg_to_sender;
+    send msgs
+
+
 (* @dev: Move a given amount of tokens from one address to another using the allowance mechanism. The caller must be an approved_spender. *)
 (* @dev: Balance of recipient will increase. Balance of token_owner will decrease.                                                        *)
 (* @param from:    Address of the token_owner whose balance is decreased.                                                                 *)
 (* @param to:      Address of the recipient whose balance is increased.                                                                   *)
-(* @param amount:  Amount of tokens to be transferred.                                                                                    *)
-transition TransferFrom(from: ByStr20, to: ByStr20, amount: Uint128)
+(* @param amount:  Amount of tokens to be transferred. *)
+transition TransferFromSecured(from: ByStr20, to: ByStr20, amount: Uint128)
   o_spender_allowed <- allowances[from][_sender];
   allowed = get_val o_spender_allowed;
   can_do = uint128_le amount allowed;
@@ -182,9 +196,9 @@ transition TransferFrom(from: ByStr20, to: ByStr20, amount: Uint128)
     new_allowed = builtin sub allowed amount;
     allowances[from][_sender] := new_allowed;
     (* Prevent sending to a contract address that does not support transfers of token *)
-    msg_to_recipient = {_tag: "RecipientAcceptTransferFrom"; _recipient : to; _amount: zero; 
+    msg_to_recipient = {_tag: "RecipientAcceptTransferFrom"; _recipient : to; _amount: zero;
                         initiator: _sender; sender : from; recipient: to; amount: amount};
-    msg_to_sender = {_tag: "TransferFromSuccessCallBack"; _recipient: _sender; _amount: zero; 
+    msg_to_sender = {_tag: "TransferFromSuccessCallBack"; _recipient: _sender; _amount: zero;
                     initiator: _sender; sender: from; recipient: to; amount: amount};
     msgs = two_msgs msg_to_recipient msg_to_sender;
     send msgs
