@@ -162,8 +162,7 @@ procedure LiqNFTredeem(nftaddress: ByStr20, tokenid: Uint256)
 (***************************************)
 
 (* link deposited NFT to N shares of a specified FT*)
-transition Deposit_and_link(amount: Uint128, nfttokenAddress: ByStr20, tokenid: Uint256,
-    numshares: Uint128, fractionalshare: ByStr20)
+transition Deposit_and_link(nfttokenAddress: ByStr20, tokenid: Uint256, numshares: Uint128, fractionalshare: ByStr20)
     recipient = _sender;
     num_shares[tokenid]:=numshares;
     LiqNFTdeposit nfttokenAddress tokenid;
