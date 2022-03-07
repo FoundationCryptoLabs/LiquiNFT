@@ -552,11 +552,11 @@ transition TransferFrom(to: ByStr20, token_id: Uint256)
     UpdateTokenCount add_operation to;
     e = {_eventname: "TransferFromSuccess"; from: token_owner; recipient: to; token_id: token_id};
     event e;
-    (* msg_to_recipient = { _tag : "RecipientAcceptTransferFrom"; _recipient : to; _amount : Uint128 0;
+    msg_to_recipient = { _tag : "RecipientAcceptTransferFrom"; _recipient : to; _amount : Uint128 0;
                         from : token_owner; token_id : token_id };
     msg_to_sender = { _tag : "TransferFromSuccessCallBack"; _recipient : _sender; _amount : Uint128 0;
                       from : token_owner; token_id : token_id };
     msgs = two_msgs msg_to_recipient msg_to_sender;
-    send msgs *)
+    send msgs 
   end
 end
