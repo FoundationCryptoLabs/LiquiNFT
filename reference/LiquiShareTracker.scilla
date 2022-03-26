@@ -125,9 +125,10 @@ procedure AcceptNFT(from : ByStr20, token_id : Uint256)
 
 (* transfer NFT from _sender to this contract) *)
 procedure LiqNFTdeposit(nftaddress: ByStr20, tokenid: Uint256)
-    msg1 = { _tag : "SetApprove"; _amount : Uint128 0; _recipient : nftaddress; to : _this_address; token_id : tokenid};
-    msg2 = { _tag : "TransferFrom"; _amount : Uint128 0; _recipient : nftaddress; to : _this_address; token_id : tokenid};
-    msgs = two_msgs msg1 msg2;
+    (*msg1 = { _tag : "SetApprove"; _amount : Uint128 0; _recipient : nftaddress; to : _this_address; token_id : tokenid};*)
+    msg1 = { _tag : "TransferFrom"; _amount : Uint128 0; _recipient : nftaddress; to : _this_address; token_id : tokenid};
+    (*msgs = two_msgs msg1 msg2;*)
+    msgs = one_msg msg1;
     send msgs
   end
 
@@ -137,7 +138,7 @@ procedure TransferZRC2(
   token_amount : Uint128,
   token_address : ByStr20
   )
-  msg1 = { _tag : "IncreaseAllowance"; _amount : Uint128 0; _recipient: token_address; amount : token_amount; spender : _this_address };
+  msg1 = { _tag : "IncreaseAllowance"; _amount : Uint128 ; _recipient: token_address; amount : token_amount; spender : _this_address };
   msg_to_token = {
     _tag : "TransferFrom";
     _recipient: token_address;
@@ -192,7 +193,7 @@ transition return_and_redeem(nfttokenAddress: ByStr20, tokenid: Uint256)
       validtokens = v;
       match tokaddress with
       | Some z =>
-          TransferZRC2 _this_address v z;
+          TransferZRC2 _this_address validtokens z;
           LiqNFTredeem nfttokenAddress tokenid
       | None =>
       validtokens = Uint128 0
