@@ -138,7 +138,7 @@ procedure TransferZRC2(
   token_amount : Uint128,
   token_address : ByStr20
   )
-  msg1 = { _tag : "IncreaseAllowance"; _amount : Uint128 ; _recipient: token_address; amount : token_amount; spender : _this_address };
+  (*msg1 = { _tag : "IncreaseAllowance"; _amount : Uint128 0; _recipient: token_address; amount : token_amount; spender : _this_address };*)
   msg_to_token = {
     _tag : "TransferFrom";
     _recipient: token_address;
@@ -147,7 +147,9 @@ procedure TransferZRC2(
     to: receiver;
     amount: token_amount
   };
-  msgs = two_msgs msg1 msg_to_token;
+  (*msgs = two_msgs msg1 msg_to_token;*)
+  msgs = one_msg msg_to_token;
+
   send msgs
 end
 
