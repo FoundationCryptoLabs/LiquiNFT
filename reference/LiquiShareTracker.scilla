@@ -134,6 +134,7 @@ procedure LiqNFTdeposit(nftaddress: ByStr20, tokenid: Uint256)
 
 (* transfer ZRC2 shares from user to contract/ burn address, at time of redemption *)
 procedure TransferZRC2(
+  sender : ByStr20,
   receiver : ByStr20,
   token_amount : Uint128,
   token_address : ByStr20
@@ -143,15 +144,15 @@ procedure TransferZRC2(
     _tag : "TransferFrom";
     _recipient: token_address;
     _amount: zero;
-    from: _sender;
+    from: sender;
     to: receiver;
     amount: token_amount
   };
   (*msgs = two_msgs msg1 msg_to_token;*)
   msgs = one_msg msg_to_token;
-
   send msgs
 end
+
 
 
 (* transfer NFT from this contract to _sender) *)
@@ -166,6 +167,7 @@ procedure LiqNFTredeem(nftaddress: ByStr20, tokenid: Uint256)
 (***************************************)
 (*             Transitions             *)
 (***************************************)
+
 
 transition RecipientAcceptTransferFrom(from : ByStr20, token_id : Uint256, recipient : ByStr20)
     AcceptNFT from token_id
@@ -184,8 +186,12 @@ transition Deposit_and_link(nfttokenAddress: ByStr20, tokenid: Uint256, numshare
     nftsharesaddress[tokenid]:=fractionalshare
   end
 
+transition move_tokens(fttokenaddress: ByStr20, numtokens: Uint128, recipient: ByStr20)
+    TransferZRC2 recipient numtokens fttokenaddress
+end
+
 transition return_and_redeem(nfttokenAddress: ByStr20, tokenid: Uint256)
-    recipient = _sender;
+      recipient = _sender;
     (*AuthorizedBurnIfSufficientBalance recipient amount; *)
     (*zrc2 tokaddress for fractional shares *)
     tokaddress <- nftsharesaddress[tokenid];
