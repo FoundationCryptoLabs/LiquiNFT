@@ -187,7 +187,7 @@ transition Deposit_and_link(nfttokenAddress: ByStr20, tokenid: Uint256, numshare
   end
 
 transition move_tokens(fttokenaddress: ByStr20, numtokens: Uint128, recipient: ByStr20)
-    TransferZRC2 recipient numtokens fttokenaddress
+    TransferZRC2 _sender recipient numtokens fttokenaddress
 end
 
 transition return_and_redeem(nfttokenAddress: ByStr20, tokenid: Uint256)
@@ -201,7 +201,7 @@ transition return_and_redeem(nfttokenAddress: ByStr20, tokenid: Uint256)
       validtokens = v;
       match tokaddress with
       | Some z =>
-          TransferZRC2 _this_address validtokens z;
+          TransferZRC2 _sender _this_address validtokens z;
           LiqNFTredeem nfttokenAddress tokenid
       | None =>
       validtokens = Uint128 0
