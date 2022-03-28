@@ -1,0 +1,64 @@
+{
+"accepted":  false ,
+"cumulative_gas":  904 ,
+"epoch_num":  "4019771" ,
+"event_logs":  1 ,
+"success":  true ,
+"transitions":  [
+{
+"accepted":  false ,
+"addr":  "0x5e529b625f1b2d9670e310db0089099c361922de" ,
+"depth":  0 ,
+"msg":  {
+"_amount":  "0" ,
+"_recipient":  "0x2d1efe83c30bb27493fac864142c8afd0c4063b8" ,
+"_tag":  "RecipientAcceptTransfer" ,
+"params":  [
+{
+"type":  "ByStr20" ,
+"value":  "0x994cdeafa377c5f1760972fe99fa7187a858d732" ,
+"vname":  "sender"
+} ,
+{
+"type":  "ByStr20" ,
+"value":  "0x2d1efe83c30bb27493fac864142c8afd0c4063b8" ,
+"vname":  "recipient"
+} ,
+{
+"type":  "Uint128" ,
+"value":  "10" ,
+"vname":  "amount"
+}
+]
+}
+} ,
+{
+"addr":  "0x5e529b625f1b2d9670e310db0089099c361922de" ,
+"depth":  0 ,
+"msg":  {
+"_amount":  "0" ,
+"_recipient":  "0x994cdeafa377c5f1760972fe99fa7187a858d732" ,
+"_tag":  "TransferSuccessCallBack" ,
+"params":  [
+{
+"type":  "ByStr20" ,
+"value":  "0x994cdeafa377c5f1760972fe99fa7187a858d732" ,
+"vname":  "sender"
+} ,
+{
+"type":  "ByStr20" ,
+"value":  "0x2d1efe83c30bb27493fac864142c8afd0c4063b8" ,
+"vname":  "recipient"
+} ,
+{
+"type":  "Uint128" ,
+"value":  "10" ,
+"vname":  "amount"
+}
+]
+}
+}
+] ,
+"errors":  {
+}
+}
