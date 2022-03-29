@@ -62,3 +62,184 @@
 "errors":  {
 }
 }
+---
+{
+"accepted":  false ,
+"cumulative_gas":  906 ,
+"epoch_num":  "4019796" ,
+"event_logs":  1 ,
+"success":  true ,
+"transitions":  [
+{
+"accepted":  false ,
+"addr":  "0x5e529b625f1b2d9670e310db0089099c361922de" ,
+"depth":  0 ,
+"msg":  {
+"_amount":  "0" ,
+"_recipient":  "0xa55832fafe3c082e64652d95c34a2c362efc0302" ,
+"_tag":  "RecipientAcceptTransfer" ,
+"params":  [
+{
+"type":  "ByStr20" ,
+"value":  "0x994cdeafa377c5f1760972fe99fa7187a858d732" ,
+"vname":  "sender"
+} ,
+{
+"type":  "ByStr20" ,
+"value":  "0xa55832fafe3c082e64652d95c34a2c362efc0302" ,
+"vname":  "recipient"
+} ,
+{
+"type":  "Uint128" ,
+"value":  "9" ,
+"vname":  "amount"
+}
+]
+}
+} ,
+{
+"addr":  "0x5e529b625f1b2d9670e310db0089099c361922de" ,
+"depth":  0 ,
+"msg":  {
+"_amount":  "0" ,
+"_recipient":  "0x994cdeafa377c5f1760972fe99fa7187a858d732" ,
+"_tag":  "TransferSuccessCallBack" ,
+"params":  [
+{
+"type":  "ByStr20" ,
+"value":  "0x994cdeafa377c5f1760972fe99fa7187a858d732" ,
+"vname":  "sender"
+} ,
+{
+"type":  "ByStr20" ,
+"value":  "0xa55832fafe3c082e64652d95c34a2c362efc0302" ,
+"vname":  "recipient"
+} ,
+{
+"type":  "Uint128" ,
+"value":  "9" ,
+"vname":  "amount"
+}
+]
+}
+}
+] ,
+"errors":  {
+}
+}
+----
+{
+"accepted":  false ,
+"cumulative_gas":  1782 ,
+"epoch_num":  "4020214" ,
+"event_logs":  1 ,
+"success":  true ,
+"transitions":  [
+{
+"accepted":  false ,
+"addr":  "0x91031d5298957510d31a153291a8df0ae19eadfb" ,
+"depth":  0 ,
+"msg":  {
+"_amount":  "0" ,
+"_recipient":  "0xf7319adee90e3eb35048a2de8af9973c90eb165f" ,
+"_tag":  "TransferFrom" ,
+"params":  [
+{
+"type":  "ByStr20" ,
+"value":  "0x91031d5298957510d31a153291a8df0ae19eadfb" ,
+"vname":  "to"
+} ,
+{
+"type":  "Uint256" ,
+"value":  "2" ,
+"vname":  "token_id"
+}
+]
+}
+} ,
+{
+"accepted":  true ,
+"addr":  "0xf7319adee90e3eb35048a2de8af9973c90eb165f" ,
+"depth":  1 ,
+"msg":  {
+"_amount":  "0" ,
+"_recipient":  "0x91031d5298957510d31a153291a8df0ae19eadfb" ,
+"_tag":  "RecipientAcceptTransferFrom" ,
+"params":  [
+{
+"type":  "ByStr20" ,
+"value":  "0x994cdeafa377c5f1760972fe99fa7187a858d732" ,
+"vname":  "from"
+} ,
+{
+"type":  "ByStr20" ,
+"value":  "0x91031d5298957510d31a153291a8df0ae19eadfb" ,
+"vname":  "recipient"
+} ,
+{
+"type":  "Uint256" ,
+"value":  "2" ,
+"vname":  "token_id"
+}
+]
+}
+} ,
+{
+"accepted":  true ,
+"addr":  "0xf7319adee90e3eb35048a2de8af9973c90eb165f" ,
+"depth":  1 ,
+"msg":  {
+"_amount":  "0" ,
+"_recipient":  "0x91031d5298957510d31a153291a8df0ae19eadfb" ,
+"_tag":  "TransferFromSuccessCallBack" ,
+"params":  [
+{
+"type":  "ByStr20" ,
+"value":  "0x994cdeafa377c5f1760972fe99fa7187a858d732" ,
+"vname":  "from"
+} ,
+{
+"type":  "ByStr20" ,
+"value":  "0x91031d5298957510d31a153291a8df0ae19eadfb" ,
+"vname":  "recipient"
+} ,
+{
+"type":  "Uint256" ,
+"value":  "2" ,
+"vname":  "token_id"
+}
+]
+}
+}
+] ,
+"errors":  {
+}
+}
+---
+{
+"accepted":  false ,
+"cumulative_gas":  805 ,
+"epoch_num":  "4023793" ,
+"errors":  {
+"1":  [
+"CALL_CONTRACT_FAILED"
+]
+} ,
+"exceptions":  [
+{
+"line":  124 ,
+"message":  "Exception thrown: (Message [(_exception : (String "Error")) ; (code : (Int32 -10))])"
+} ,
+{
+"line":  137 ,
+"message":  "Raised from IsSelf"
+} ,
+{
+"line":  526 ,
+"message":  "Raised from TransferFrom"
+}
+] ,
+"success":  false ,
+"event_logs":  [
+]
+}

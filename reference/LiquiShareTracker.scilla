@@ -17,6 +17,9 @@ fun (msg2 : Message) =>
   let msgs_tmp = one_msg msg2 in
   Cons {Message} msg1 msgs_tmp
 
+
+let uint128_zero = Uint128 0
+
 (* Error events *)
 type Error =
 | CodeIsSender
@@ -71,14 +74,23 @@ contract LiquiShareTracker
   burn_addr : ByStr20
 )
 
+
 (* Mutable fields *)
 (*map unique nftid to nftshare FT address, and num of FT shares *)
 field nftsharesaddress : Map Uint256 ByStr20 = Emp Uint256 ByStr20
 field nftid_used : Map Uint256 Bool = Emp Uint256 Bool
 field num_shares : Map Uint256 Uint128 = Emp Uint256 Uint128
+field num_shares2 : Map ByStr20 Uint128 = Emp ByStr20 Uint128
+
+field nftaddr : Map ByStr20 ByStr20 = Emp ByStr20 ByStr20
+field nftid : Map ByStr20 Uint256 = Emp ByStr20 Uint256
+
 
 (*map unique FT address to internal balance *)
 field tokbalance : Map ByStr20 Uint128 = Emp ByStr20 Uint128
+
+(*map unique FT address to sender*)
+field ftsender : Map ByStr20 ByStr20 = Emp ByStr20 ByStr20
 
 field balances: Map ByStr20 Uint128
   = let emp_map = Emp ByStr20 Uint128 in
@@ -88,8 +100,9 @@ field allowances: Map ByStr20 (Map ByStr20 Uint128)
   = Emp ByStr20 (Map ByStr20 Uint128)
 
 (* keep track of tokens minted for a given NFT_ID - uint ID -> uint supply mapping *)
-field tokens_minted: Map Uint128 Uint128
- = Emp Uint128 Uint128
+field ftused : Map ByStr20 Bool = Emp ByStr20 Bool
+
+
 
 (**************************************)
 (*             Procedures             *)
@@ -164,11 +177,23 @@ end
 
 
 (* transfer NFT from this contract to _sender) *)
-procedure LiqNFTredeem(nftaddress: ByStr20, tokenid: Uint256)
-    reciever = _sender;
-    msg1 = { _tag : "Transfer"; _recipient : nftaddress; _amount : Uint128 0; to : reciever; token_id : tokenid};
+procedure LiqNFTredeem2(nftaddress: ByStr20, tokenid: Uint256, sendingaddr: ByStr20)
+    msg1 = { _tag : "Transfer"; _recipient : nftaddress; _amount : Uint128 0; to : sendingaddr; token_id : tokenid};
     msgs = one_msg msg1;
     send msgs
+  end
+
+
+procedure LiqNFTredeem(nftaddress: ByStr20, tokenid: Uint256, destination: ByStr20)
+  transfer_to_user = {
+        _tag: "TransferFrom";
+        _recipient: nftaddress;
+        _amount: uint128_zero;
+        to: destination;
+        token_id: tokenid
+        };
+      msgs = one_msg transfer_to_user;
+      send msgs
   end
 
 
@@ -181,10 +206,12 @@ transition RecipientAcceptTransfer(
   recipient : ByStr20,
   amount : Uint128
 )
-tokbalance[_sender]:=amount
+(*ftaddr <- _sender;*)
+tokbalance[_sender]:=amount;
+ftsender[_sender]:=sender
 end
 
-transition TransferFromSuccessCallBack2(
+transition TransferFromSuccessCallBack(
   initiator : ByStr20,
   sender : ByStr20,
   recipient : ByStr20,
@@ -230,24 +257,28 @@ end
 transition Deposit_and_link(nfttokenAddress: ByStr20, tokenid: Uint256, numshares: Uint128, fractionalshare: ByStr20)
     recipient = _sender;
     num_shares[tokenid]:=numshares;
-    LiqNFTdeposit nfttokenAddress tokenid;
-    nftsharesaddress[tokenid]:=fractionalshare
+    num_shares2[fractionalshare]:=numshares;
+    nftid[fractionalshare]:=tokenid;
+    nftaddr[fractionalshare]:=nfttokenAddress;
+    fuse <- ftused[fractionalshare];
+    match fuse with
+        | Some x =>
+        err = CodeIsSender;
+        ThrowError err
+        | None =>
+        LiqNFTdeposit nfttokenAddress tokenid
+    end
   end
 
-transition move_tokens(fttokenaddress: ByStr20, numtokens: Uint128, recipient: ByStr20)
-    TransferZRC2 burn_addr recipient numtokens fttokenaddress
-end
-
-
-
 transition redeem(nfttokenAddress: ByStr20, tokenid: Uint256)
-    LiqNFTredeem nfttokenAddress tokenid
+    recipient = _sender;
+    LiqNFTredeem nfttokenAddress tokenid recipient
 end
 
 
 
 transition return_and_redeem(nfttokenAddress: ByStr20, tokenid: Uint256)
-      recipient = _sender;
+    recipient = _sender;
     (*AuthorizedBurnIfSufficientBalance recipient amount; *)
     (*zrc2 tokaddress for fractional shares *)
     tokaddress <- nftsharesaddress[tokenid];
@@ -258,7 +289,7 @@ transition return_and_redeem(nfttokenAddress: ByStr20, tokenid: Uint256)
       match tokaddress with
       | Some z =>
           TransferZRC2 burn_addr _this_address validtokens z;
-          LiqNFTredeem nfttokenAddress tokenid
+          LiqNFTredeem nfttokenAddress tokenid recipient
       | None =>
       validtokens = Uint128 0
       end
@@ -268,29 +299,39 @@ transition return_and_redeem(nfttokenAddress: ByStr20, tokenid: Uint256)
 end
 
 
-transition check_and_redeem(nfttokenAddress: ByStr20, tokenid: Uint256)
-    tokaddress <- nftsharesaddress[tokenid];
-    toksupply <- num_shares[tokenid];
-    match tokaddress with
-    | Some taddr =>
-      intbal <- tokbalance[taddr];
-      match intbal with
-      | Some v =>
-        match toksupply with
-        | Some z =>
+transition check_and_redeem(nfttokenAddress: ByStr20, tokenid: Uint256, fraxshare: ByStr20)
+    recipient = _sender;
+    taddr = fraxshare;
+    toksupply <- num_shares2[taddr];
+    (*tokaddress <- nftsharesaddress[tokenid];
+    toksupply <- num_shares[tokenid];*)
+    toksender <- ftsender[taddr];
+    intbal <- tokbalance[taddr];
+    match toksender with
+      | Some tsender =>
+        is_sender = builtin eq tsender _sender;
+        match intbal with
+        | Some v =>
+          match toksupply with
+          | Some z =>
             is_redeemable = builtin eq v z;
-            match is_redeemable with
-            | True => LiqNFTredeem nfttokenAddress tokenid
+            match is_sender with
+            | True =>
+              match is_redeemable with
+              | True => LiqNFTredeem nfttokenAddress tokenid recipient
+              | False =>
+                validtokens = Uint128 0
+              end
             | False =>
-            validtokens = Uint128 0
+              validtokens = Uint128 0
             end
+          | None =>
+            validtokens = Uint128 0
+          end
         | None =>
           validtokens = Uint128 0
         end
       | None =>
-        validtokens = Uint128 0
-      end
-    | None =>
-      validtokens = Uint128 0
-    end
+          validtokens = Uint128 0
+        end
   end
