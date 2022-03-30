@@ -102,6 +102,8 @@ field allowances: Map ByStr20 (Map ByStr20 Uint128)
 (* keep track of tokens minted for a given NFT_ID - uint ID -> uint supply mapping *)
 field ftused : Map ByStr20 Bool = Emp ByStr20 Bool
 
+field isRedeemed : Map ByStr20 Bool = Emp ByStr20 Bool
+
 
 
 (**************************************)
@@ -175,9 +177,14 @@ procedure TransferZRC2(
 end
 
 
+procedure LiqNFTredeem(nftaddress: ByStr20, tokenid: Uint256, sendingaddr: ByStr20)
+    msg1 = { _tag : "Transfer"; _recipient : nftaddress; _amount : Uint128 0; to : sendingaddr; token_id : tokenid};
+    msgs = one_msg msg1;
+    send msgs
+  end
 
 (* transfer NFT from this contract to _sender) *)
-procedure LiqNFTredeem(nftaddress: ByStr20, tokenid: Uint256, destination: ByStr20)
+procedure LiqNFTredeem2(nftaddress: ByStr20, tokenid: Uint256, destination: ByStr20)
   transfer_to_user = {
         _tag: "TransferFrom";
         _recipient: nftaddress;
@@ -210,10 +217,11 @@ transition TransferFromSuccessCallBack2(
   amount : Uint128
 )
 end
+
 transition TransferSuccessCallBack(
-  sender : ByStr20,
-  recipient : ByStr20,
-  amount : Uint128
+  from : ByStr20,
+  token_id : Uint256,
+  recipient : ByStr20
 )
 end
 
@@ -273,14 +281,13 @@ transition move_tokens(fttokenaddress: ByStr20, numtokens: Uint128, recipient: B
 end
 
 
-
+(*
 transition redeem(nfttokenAddress: ByStr20, tokenid: Uint256)
     recipient = _sender;
     LiqNFTredeem nfttokenAddress tokenid recipient
 end
+*)
 
-    (*LiqNFTredeem nfttokenAddress tokenid recipient
-end*)
 
 
 transition return_and_redeem(nfttokenAddress: ByStr20, tokenid: Uint256)
@@ -305,15 +312,13 @@ transition return_and_redeem(nfttokenAddress: ByStr20, tokenid: Uint256)
 end
 
 
-transition check_and_redeem(nfttokenAddress: ByStr20, tokenid: Uint256)
-    tokaddress <- nftsharesaddress[tokenid];
-    toksupply <- num_shares[tokenid];
+transition check_and_redeem(nfttokenAddress: ByStr20, tokenid: Uint256, fraxshare: ByStr20)
     recipient = _sender;
-    match tokaddress with
-    | Some taddr =>
-      toksender <- ftsender[taddr];
-      intbal <- tokbalance[taddr];
-      match toksender with
+    taddr = fraxshare;
+    toksupply <- num_shares2[taddr];
+    toksender <- ftsender[taddr];
+    intbal <- tokbalance[taddr];
+    match toksender with
       | Some tsender =>
         is_sender = builtin eq tsender _sender;
         match intbal with
@@ -324,23 +329,16 @@ transition check_and_redeem(nfttokenAddress: ByStr20, tokenid: Uint256)
             match is_sender with
             | True =>
               match is_redeemable with
-              | True => LiqNFTredeem nfttokenAddress tokenid recipient
+              | True => LiqNFTredeem nfttokenAddress tokenid recipient;
+                      isRedeemed[taddr]:=true
               | False =>
-                validtokens = Uint128 0
               end
             | False =>
-              validtokens = Uint128 0
             end
           | None =>
-            validtokens = Uint128 0
           end
         | None =>
-          validtokens = Uint128 0
         end
       | None =>
-          validtokens = Uint128 0
         end
-    | None =>
-      validtokens = Uint128 0
-    end
   end
